@@ -7,3 +7,4 @@ Here's what we found:
 - Texas is the state with the most flash flood direct deaths over that entire time period with 385, followed by North Carolina (127), Missouri (107), Arizona (104), and Kentucky (99).
 - The year with the most flash flood deaths (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest in recent decades.
 
+For more information about our methods, charts, tables, read here: https://usatoday.github.io/202507_texas-flash-floods/methods.html
