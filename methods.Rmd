@@ -218,4 +218,9 @@ kerrville_uv <- readNWISuv(siteNumbers = "08166200",
                         parameterCd = "00065",
                         startDate = "2007-01-01",
                         endDate = "2025-07-07")
+
+# check max height recorded
+kerrville_uv %>%
+  arrange(-X_00065_00000) %>%
+  head(1)
 ```
