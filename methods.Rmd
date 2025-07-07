@@ -37,6 +37,8 @@ Read below to see how we got these numbers.
 
 ### Methods
 
+We downloaded NOAA storm data through their [bulk data download](https://www.ncdc.noaa.gov/stormevents/ftp.jsp), getting annual files from 1950 through 2024 (StormEvents_details-ftp_v1.0).
+
 Start by listing all the annual files and generating paths to import them.
 
 ```{r c1}
@@ -150,7 +152,4 @@ flash_floods_tx %>%
     dom = 'Bfrtip',
     buttons = c('copy', 'csv', 'excel', 'pdf')))
 ```
-
-
-
 
