@@ -32,6 +32,7 @@ Here's what we found:
 - NOAA storm event data goes back to 1950, but the first flash flood recorded there is in 1996. Between 1996 and 2024 (latest full year), there have been 1,923 direct deaths and 6,508 direct injuries from flash floods.
 - Texas is the state with the most flash flood direct deaths over that entire time period with 385, followed by North Carolina (127), Missouri (107), Arizona (104), and Kentucky (99).
 - The year with the most flash flood deaths (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest in recent decades.
+- Since October 1997, as far as records in this place go, the Guadalupe River at Kerrville reached minor flooding 4 days, moderate flooding 6 days, and major flooding 2 days. The highest river height recorded there is 34.29 feet, on July 4, 2025.
 
 Read below to see how we got these numbers.
 
@@ -153,3 +154,68 @@ flash_floods_tx %>%
     buttons = c('copy', 'csv', 'excel', 'pdf')))
 ```
 
+Now, let's move to stream gage data from USGS. We'll be accessing the data through the dataRetrieval package from the agency, but the same can be found on their website.
+
+We'll start with site [08166200](https://waterdata.usgs.gov/monitoring-location/USGS-08166200/#dataTypeId=continuous-00065-0&period=P7D) for Guadalupe River at Kerrville, TX. Gage height continuous data (15-min intervals) is available since mid 2007. Gage height daily data which includes mean/max/min aggregations is available since mid 1997.
+
+Query all daily gage height (parameter 00065) and then label, based on max height, the category for each day: 
+- action, "The level which, when reached by a rising stream, represents the level where the NWS or a customer/partner needs to take some type of mitigation action in preparation for possible significant hydrologic activity."
+- minor flooding, "Minimal or no property damage, but possibly some public threat."
+- moderate flooding, "Some inundation of structures and roads near stream."
+- major flooding, "Extensive inundation of structures and roads. Significant evacuations of people and/or transfer of property to higher elevations."
+
+These thresholds are set by the local NWS office. Corresponding values for our site can be found [here](https://water.noaa.gov/gauges/08166200).
+
+```{r c7}
+kerrville <- readNWISdv(siteNumbers = "08166200",
+                        parameterCd = "00065",
+                        startDate = "1997-01-01",
+                        endDate = "2025-07-07",
+                        statCd = c("00001", "00003")) # 00001 = Max, 00003 = Mean
+
+# rename columns for clarity
+kerrville <- kerrville %>%
+  clean_names() %>%
+  select(site_no, date, stage_height_max = x_00065_00001, stage_height_mean = x_00065_00003)
+
+# label flooding categories based on daily max
+kerrville <- kerrville %>%
+  clean_names() %>%
+  mutate(category = case_when(
+    stage_height_max >= 7 & stage_height_max < 9 ~"Action",
+    stage_height_max >= 9 & stage_height_max < 12 ~ "Minor flooding",
+    stage_height_max >= 12 & stage_height_max < 20 ~ "Moderate flooding",
+    stage_height_max >= 20 ~ "Major flooding"))
+
+```
+
+Since October 1997, as far as records in this place go, the Guadalupe River at Kerrville reached minor flooding 4 days, moderate flooding 6 days, and major flooding 2 days.
+
+The highest river height recorded there is 34.29 feet, on July 4, 2025. 
+
+```{r c8}
+
+# get a quick count
+kerrville %>%
+  group_by(category) %>%
+  summarise(count = n())
+
+# table with full data
+kerrville %>%
+  arrange(-stage_height_max) %>% # can switch to arrange(desc(date))
+  datatable(extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf')))
+
+```
+
+Double check July 4 was the highest day by taking a look at the continuous data (15-min intervals) for the site. July 4, 2025 at 11:45 am is indeed the highest recorded in this data.
+
+```{r c9}
+
+# this gets subdaily data
+kerrville_uv <- readNWISuv(siteNumbers = "08166200",
+                        parameterCd = "00065",
+                        startDate = "2007-01-01",
+                        endDate = "2025-07-07")
+```
