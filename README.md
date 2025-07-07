@@ -5,7 +5,7 @@ This is a data analysis of: [flash flood fatalities](https://www.ncdc.noaa.gov/s
 Here's what we found:
 - NOAA storm event data goes back to 1950, but the first flash flood recorded there is in 1996. Between 1996 and 2024 (latest full year), there have been 1,923 direct deaths and 6,508 direct injuries from flash floods.
 - Texas is the state with the most flash flood direct deaths over that entire time period with 385, followed by North Carolina (127), Missouri (107), Arizona (104), and Kentucky (99).
-- The year with the most flash flood deaths (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest in recent decades.
-- Since October 1997, as far as records in this place go, the Guadalupe River at Kerrville reached minor flooding 4 days, moderate flooding 6 days, and major flooding 2 days. The highest river height recorded there is 34.29 feet, on July 4, 2025.
+- The year with the most flash flood deaths in Texas (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest in recent decades.
+- Since October 1997, as far as records in this place go, the Guadalupe River at Kerrville, TX reached minor flooding 4 days, moderate flooding 6 days, and major flooding 2 days. The highest river height recorded there is 34.29 feet, on July 4, 2025.
 
 For more information about our methods, charts, tables, read here: https://usatoday.github.io/202507_texas-flash-floods/methods.html
