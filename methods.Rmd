@@ -1,0 +1,156 @@
+---
+title: "Texas Flash Floods"
+author: "Ignacio Calderon, USA TODAY"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: united
+    highlight: zenburn
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(data.table)
+library(DT)
+library(dataRetrieval)
+
+knitr::opts_chunk$set(warning = F, message = F)
+
+rm(list = ls())
+```
+
+### Intro
+
+Central Texas was hit with downpours over the Fourth of July weekend that lead to flash floods. The [Guadalupe River near Kerrville](https://www.usatoday.com/story/graphics/2025/07/06/texas-cities-flooded-july-4-rain/84484814007/) went from under 2 feet to over 34 in just over an hour. The death toll is [at least 90](https://www.usatoday.com/story/news/nation/2025/07/07/texas-flooding-live-updates-monday/84488932007/) as of July 7, most of them in Kerr County.
+
+This is a data analysis of: [flash flood fatalities](https://www.ncdc.noaa.gov/stormevents/choosedates.jsp?statefips=-999%2CALL#) from NOAA, stream gage data from USGS, precipitation data from the NWS.
+
+Here's what we found:
+- NOAA storm event data goes back to 1950, but the first flash flood recorded there is in 1996. Between 1996 and 2024 (latest full year), there have been 1,923 direct deaths and 6,508 direct injuries from flash floods.
+- Texas is the state with the most flash flood direct deaths over that entire time period with 385, followed by North Carolina (127), Missouri (107), Arizona (104), and Kentucky (99).
+- The year with the most flash flood deaths (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest in recent decades.
+
+Read below to see how we got these numbers.
+
+### Methods
+
+Start by listing all the annual files and generating paths to import them.
+
+```{r c1}
+dir <- "inputs/noaa/storm-events/"
+base <- "StormEvents_details-ftp_v1.0_d"
+seq <- 1950:2024
+end <- "_c20250520.csv"
+
+file_names <- data.frame(year = seq, 
+                         file = paste0(dir, base, seq, end)) %>%
+  mutate(file = ifelse(year == 2020, "inputs/noaa/storm-events/StormEvents_details-ftp_v1.0_d2020_c20250702.csv", file))
+
+rm(dir, base, seq, end)
+```
+
+Now make a function to import and filter events for flash floods. Iterate it over all the files. 
+
+```{r c2}
+
+import_storms_fc <- function(path){
+  
+  x <- read_csv(path, guess_max = 100000) %>% clean_names()
+  
+  # filter flash floods
+  # keep relevant columns
+  x <- x %>%
+    mutate(state = str_to_title(state)) %>%
+    filter(event_type == "Flash Flood") %>%
+    select(state, year, injuries_direct, injuries_indirect, deaths_direct, deaths_indirect,
+           flood_cause)
+  
+  return(x)
+  
+}
+
+flash_floods <- lapply(file_names$file, import_storms_fc) %>% rbindlist()
+
+```
+
+Looks like the earliest record of a flash flood in this data is in 1996. Since then, there's been 1,923 direct deaths and 6,508 direct injuries.
+
+Let's aggregate this annual data by state.
+
+```{r c3}
+
+# between 1996 and 2024
+sum(flash_floods$injuries_direct)
+sum(flash_floods$injuries_indirect)
+sum(flash_floods$deaths_direct)
+sum(flash_floods$deaths_indirect)
+
+# group by state and remove territories
+flash_floods_state <- flash_floods %>%
+  group_by(state) %>%
+  summarise(injuries_direct = sum(injuries_direct, na.rm = T),
+            deaths_direct = sum(deaths_direct, na.rm = T)) %>%
+  filter(!state %in% c("American Samoa", "Puerto Rico", "Virgin Islands", "Guam"))
+
+# quick chart of top 10 states
+flash_floods_state %>% 
+  arrange(desc(deaths_direct)) %>%
+  head(10) %>%
+  mutate(state = factor(state, levels = rev(unique(state)))) %>%
+  ggplot(aes(x = deaths_direct, y = state)) +
+  geom_bar(stat = "identity", fill = "#1665CF") +
+  theme_linedraw() +
+  labs(title = "Top 10 States by Flash Flood Deaths (1996-2024)",
+     x = "Direct Deaths",
+     y = "")
+
+```
+
+Texas is the state with the most flash floods deaths. Let's take a closer look at annual numbers. Between 1996 and 2024, the year with the most deaths is 2017 at 68.
+
+```{r c4}
+
+# get an annual timeseries for texas
+flash_floods_tx <- flash_floods %>%
+  filter(state == "Texas") %>%
+  group_by(year) %>%
+  summarise(injuries_direct = sum(injuries_direct, na.rm = T),
+            deaths_direct = sum(deaths_direct, na.rm = T))
+
+# quick chart
+flash_floods_tx %>%
+  ggplot(aes(x = year, y = deaths_direct)) +
+  geom_bar(stat = "identity", fill = "#1665CF") +
+  theme_linedraw() +
+  labs(title = "Texas Annual Flash Flood Deaths (1996-2024)",
+     y = "Direct Deaths",
+     x = "")
+
+```
+
+Here is the tables for state data (combined years).
+
+```{r c5, echo = FALSE}
+flash_floods_state %>%
+  arrange(-deaths_direct) %>%
+  datatable(extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf')))
+```
+
+And the table for Texas annual data (1996-2024).
+
+```{r c6, echo = FALSE}
+flash_floods_tx %>%
+  arrange(-year) %>%
+  datatable(extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf')))
+```
+
+
+
+
