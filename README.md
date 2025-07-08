@@ -8,7 +8,7 @@ Here's what we found:
 - Texas is the state with the most flash flood direct deaths over that entire time period with 385, followed by North Carolina (127), Missouri (107), Arizona (104), and Kentucky (99).
 - The year with the most flash flood deaths in Texas (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest year in recent decades.
 - Since October 1997, as far as records in this place go, the Guadalupe River at Kerrville, TX reached minor flooding 4 days, moderate flooding 6 days, and major flooding 2 days. The highest river height recorded there is 34.29 feet, on July 4, 2025.
-- By the start of July 4, 2025, the discharge at the Guadalupe River at Kerrville was 3 cubic feet per second (cfs). That rate would fill an olympic pool in 8.1 hours. Soon after sunrise (7:30 am), it reached 134,000 cfs. That rate would fill the same pool in 0.66 seconds (88,229 ft3 divided by 134,000 cfs).
+- By the start of July 4, 2025, the discharge at the Guadalupe River at Kerrville was 3 cubic feet per second (cfs). That rate would fill an olympic pool in 8.1 hours. Soon after sunrise (7:30 am), it reached 134,000 cfs. That rate would fill the same pool in 0.66 seconds.
 - That peak discharge was the second highest ever recorded by this stream monitor, with data going back to mid 1986. It's worth noting that there is a gap between 6:15 am and 7:30 am before discharge starts to decrease on July 4.
 
 For more information about our methods, charts, tables, read here: https://usatoday.github.io/202507_texas-flash-floods/methods.html
