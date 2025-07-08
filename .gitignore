@@ -2,6 +2,6 @@
 .Rapp.history
 .Ruserdata
 .DS_Store
-inputs/noaa/storm-events
+inputs/noaa/*
 .Rproj.user
 exp.R

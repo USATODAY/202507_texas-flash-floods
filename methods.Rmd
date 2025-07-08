@@ -26,13 +26,15 @@ rm(list = ls())
 
 Central Texas was hit with downpours over the Fourth of July weekend that lead to flash floods. The [Guadalupe River near Kerrville](https://www.usatoday.com/story/graphics/2025/07/06/texas-cities-flooded-july-4-rain/84484814007/) went from under 2 feet to over 34 in just over an hour. The death toll is [at least 90](https://www.usatoday.com/story/news/nation/2025/07/07/texas-flooding-live-updates-monday/84488932007/) as of July 7, most of them in Kerr County.
 
-This is a data analysis of: [flash flood fatalities](https://www.ncdc.noaa.gov/stormevents/choosedates.jsp?statefips=-999%2CALL#) from NOAA, stream gage data from USGS, precipitation data from the NWS.
+This is a data analysis of: [flash flood fatalities](https://www.ncdc.noaa.gov/stormevents/choosedates.jsp?statefips=-999%2CALL#) from NOAA and stream gage data from USGS.
 
 Here's what we found:
 - NOAA storm event data goes back to 1950, but the first flash flood recorded there is in 1996. Between 1996 and 2024 (latest full year), there have been 1,923 direct deaths and 6,508 direct injuries from flash floods.
 - Texas is the state with the most flash flood direct deaths over that entire time period with 385, followed by North Carolina (127), Missouri (107), Arizona (104), and Kentucky (99).
-- The year with the most flash flood deaths in Texas (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest in recent decades.
+- The year with the most flash flood deaths in Texas (between 1996-2024) is 2017 with 68 direct deaths. That would make 2025's event the deadliest year in recent decades.
 - Since October 1997, as far as records in this place go, the Guadalupe River at Kerrville, TX reached minor flooding 4 days, moderate flooding 6 days, and major flooding 2 days. The highest river height recorded there is 34.29 feet, on July 4, 2025.
+- By the start of July 4, 2025, the discharge at the Guadalupe River at Kerrville was 3 cubic feet per second (cfs). That rate would fill an olympic pool in 8.1 hours. Soon after sunrise (7:30 am), it reached 134,000 cfs. That rate would fill the same pool in 0.66 seconds (88,229 ft3 divided by 134,000 cfs).
+- That peak discharge was the second highest ever recorded by this stream monitor, with data going back to mid 1986. It's worth noting that there is a gap between 6:15 am and 7:30 am before discharge starts to decrease on July 4.
 
 Read below to see how we got these numbers.
 
@@ -224,3 +226,54 @@ kerrville_uv %>%
   arrange(-X_00065_00000) %>%
   head(1)
 ```
+
+We can also look at the discharge (streamflow) data at this site. Continuous data (15-min intervals) at the Guadalupe River at Kerrville goes back to mid 1996. Daily discharge data which includes mean/max/min aggregations is available since mid 1986.
+
+Query both as far back as they go.
+
+```{r c10}
+
+# daily
+kerrville_Q <- readNWISdv(siteNumbers = "08166200",
+                        parameterCd = "00060",
+                        startDate = "1986-01-01",
+                        endDate = "2025-07-08",
+                        statCd = c("00001", "00003")) # 00001 = Max, 00003 = Mean
+
+# continuous
+kerrville_uv_Q <- readNWISuv(siteNumbers = "08166200",
+                        parameterCd = "00060",
+                        startDate = "1996-01-01",
+                        endDate = "2025-07-08")
+
+# rename columns for clarity
+kerrville_Q <- kerrville_Q %>%
+  clean_names() %>%
+  select(site_no, date, q_max = x_00060_00001, q_mean = x_00060_00003)
+
+# and change UTC to central time zone
+kerrville_uv_Q <- kerrville_uv_Q %>%
+  clean_names() %>%
+  select(site_no, date_time, q_cfs = x_00060_00000) %>%
+  mutate(date_time = as.POSIXct(date_time, tz = "America/Chicago"))
+
+```
+
+By the start of July 4, 2025, the discharge at the Guadalupe River at Kerrville was 3.04 cubic feet per second (cfs). That rate would fill an olympic pool ([660,000 gallons](https://www.usatoday.com/story/sports/olympics/2024/07/19/how-many-gallons-olympic-swimming-pool/74411859007/) or 88,229 ft3) in 8.1 hours (88,229 ft3 divided by 3.04 cfs, then divided by 3600 to get rate in hours).
+
+Soon after sunrise (7:30 am), it reached 134,000 cfs. That rate would fill the same pool in 0.66 seconds (88,229 ft3 divided by 134,000 cfs).
+
+That peak discharge was the second highest ever recorded by this stream monitor, with data going back to mid 1986. It's worth noting that there is a gap in the data between 6:15 am and 7:30 am before discharge starts to decrease on July 4. That means the monitor may have missed even higher values, something that happens during extreme events.
+
+Here is the daily data showing the max discharge back until 1986:
+
+```{r c12}
+
+kerrville_Q %>%
+  arrange(-q_max) %>%
+  select(site_no, date, max_discharge_cfs = q_max, mean_discharge_cfs = q_mean) %>%
+  datatable(extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    buttons = c('copy', 'csv', 'excel', 'pdf')))
+```
+
