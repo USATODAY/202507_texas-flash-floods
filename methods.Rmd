@@ -72,7 +72,7 @@ import_storms_fc <- function(path){
     mutate(state = str_to_title(state)) %>%
     filter(event_type == "Flash Flood") %>%
     select(state, year, injuries_direct, injuries_indirect, deaths_direct, deaths_indirect,
-           flood_cause)
+           flood_cause, episode_narrative, event_narrative)
   
   return(x)
   
@@ -95,14 +95,14 @@ sum(flash_floods$deaths_direct)
 sum(flash_floods$deaths_indirect)
 
 # group by state and remove territories
-flash_floods_state <- flash_floods %>%
+flash_floods_state_1996_2024 <- flash_floods %>%
   group_by(state) %>%
   summarise(injuries_direct = sum(injuries_direct, na.rm = T),
             deaths_direct = sum(deaths_direct, na.rm = T)) %>%
   filter(!state %in% c("American Samoa", "Puerto Rico", "Virgin Islands", "Guam"))
 
 # quick chart of top 10 states
-flash_floods_state %>% 
+flash_floods_state_1996_2024 %>% 
   arrange(desc(deaths_direct)) %>%
   head(10) %>%
   mutate(state = factor(state, levels = rev(unique(state)))) %>%
@@ -120,14 +120,14 @@ Texas is the state with the most flash floods deaths. Let's take a closer look a
 ```{r c4}
 
 # get an annual timeseries for texas
-flash_floods_tx <- flash_floods %>%
+flash_floods_tx_year <- flash_floods %>%
   filter(state == "Texas") %>%
-  group_by(year) %>%
+  group_by(year, state) %>%
   summarise(injuries_direct = sum(injuries_direct, na.rm = T),
             deaths_direct = sum(deaths_direct, na.rm = T))
 
 # quick chart
-flash_floods_tx %>%
+flash_floods_tx_year %>%
   ggplot(aes(x = year, y = deaths_direct)) +
   geom_bar(stat = "identity", fill = "#1665CF") +
   theme_linedraw() +
@@ -140,7 +140,7 @@ flash_floods_tx %>%
 Here is the tables for state data (combined years).
 
 ```{r c5, echo = FALSE}
-flash_floods_state %>%
+flash_floods_state_1996_2024 %>%
   arrange(-deaths_direct) %>%
   datatable(extensions = 'Buttons', options = list(
     dom = 'Bfrtip',
@@ -150,11 +150,17 @@ flash_floods_state %>%
 And the table for Texas annual data (1996-2024).
 
 ```{r c6, echo = FALSE}
-flash_floods_tx %>%
+flash_floods_tx_year %>%
   arrange(-year) %>%
   datatable(extensions = 'Buttons', options = list(
     dom = 'Bfrtip',
     buttons = c('copy', 'csv', 'excel', 'pdf')))
+
+## export flash flood data
+# write_csv(flash_floods_state_1996_2024, "outputs/flash_floods_state_1996_2024.csv")
+# write_csv(flash_floods_tx_year, "outputs/flash_floods_tx_year.csv")
+# write_csv(flash_floods, "outputs/flash_floods.csv")
+
 ```
 
 Now, let's move to stream gage data from USGS. We'll be accessing the data through the dataRetrieval package from the agency, but the same can be found on their website.
@@ -173,7 +179,7 @@ These thresholds are set by the local NWS office. Corresponding values for our s
 kerrville <- readNWISdv(siteNumbers = "08166200",
                         parameterCd = "00065",
                         startDate = "1997-01-01",
-                        endDate = "2025-07-07",
+                        endDate = "2025-07-08",
                         statCd = c("00001", "00003")) # 00001 = Max, 00003 = Mean
 
 # rename columns for clarity
@@ -210,6 +216,13 @@ kerrville %>%
     dom = 'Bfrtip',
     buttons = c('copy', 'csv', 'excel', 'pdf')))
 
+# export river height for each minor/moderate/major flood
+kerrville_flood_heights <- kerrville %>%
+  filter(category != "Action") %>%
+  select(-stage_height_mean) %>%
+  arrange(-stage_height_max)
+
+# write_csv(kerrville_flood_heights, "outputs/kerrville_flood_heights.csv")
 ```
 
 Double check July 4 was the highest day by taking a look at the continuous data (15-min intervals) for the site. July 4, 2025 at 11:45 am is indeed the highest recorded in this data.
@@ -292,5 +305,48 @@ kerrville_Q %>%
   datatable(extensions = 'Buttons', options = list(
     dom = 'Bfrtip',
     buttons = c('copy', 'csv', 'excel', 'pdf')))
+```
+
+Finally, let's put together for export all the stream data (height and discharge) from sensors along the Guadalupe for July 4th weekend.
+
+```{r c13}
+
+# we will need continous data to recreate the rapid spikes
+# let's query sensors in the state and then we can narrow down
+
+# get all sites in Texas with subdaily gage height data
+tx_gauges <- whatNWISdata(stateCd = "TX", parameterCd = "00065", service = "uv")
+
+# filter for active gauges along the Guadalupe River
+guadalupe_gauges <- tx_gauges %>%
+  filter(site_tp_cd == "ST", end_date >= (Sys.Date()-1)) %>%
+  mutate(guadalupe = str_detect(station_nm, regex("guadalupe", ignore_case = T))) %>%
+  filter(guadalupe == T)
+
+# the gauges are in order starting upstream
+# for now, use the top 6 which would be upstream of Hunt all the way to Comfort
+gauges <- guadalupe_gauges %>% 
+  head(6) %>%
+  select(site_no, station_nm, lat = dec_lat_va, long = dec_long_va, 
+         coord_datum = dec_coord_datum_cd)
+
+# now query stage height and discharge data for these starting July 4 through July 6
+stream_data_july_4th <- readNWISuv(siteNumbers = gauges$site_no,
+                        parameterCd = c("00065", "00060"),
+                        startDate = "2025-07-04",
+                        endDate = "2025-07-06")
+
+# rename columns for clarity 
+# change UTC to central time zone
+# and add station names, lat, long
+stream_data_july_4th <- stream_data_july_4th %>%
+  clean_names() %>%
+  select(site_no, date_time, height_ft = x_00065_00000, discharge_cfs = x_00060_00000) %>%
+  mutate(date_time = as.POSIXct(date_time, tz = "America/Chicago")) %>%
+  left_join(gauges)
+
+# there are gaps in data during peak flood times but it's all the data available
+# write_csv(stream_data_july_4th, "outputs/stream_data_july_4th.csv")
+
 ```
 

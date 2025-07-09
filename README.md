@@ -1,4 +1,6 @@
 
+## Texas Flash Floods
+
 Central Texas was hit with downpours over the Fourth of July weekend that lead to flash floods. The [Guadalupe River near Kerrville](https://www.usatoday.com/story/graphics/2025/07/06/texas-cities-flooded-july-4-rain/84484814007/) went from under 2 feet to over 34 in just over an hour. The death toll is [at least 90](https://www.usatoday.com/story/news/nation/2025/07/07/texas-flooding-live-updates-monday/84488932007/) as of July 7, most of them in Kerr County.
 
 This is a data analysis of: [flash flood fatalities](https://www.ncdc.noaa.gov/stormevents/choosedates.jsp?statefips=-999%2CALL#) from NOAA and stream gage data from USGS.
@@ -12,3 +14,13 @@ Here's what we found:
 - That peak discharge was the second highest ever recorded by this stream monitor, with data going back to mid 1986. It's worth noting that there is a gap between 6:15 am and 7:30 am before discharge starts to decrease on July 4.
 
 For more information about our methods, charts, tables, read here: https://usatoday.github.io/202507_texas-flash-floods/methods.html
+
+### Outputs
+
+The analysis script (methods.Rmd) exports a few files:
+- "flash_floods_state_1996_2024.csv" contains total flash flood deaths and injuries by state.
+- "flash_floods_tx_year.csv" contains an annual timeseries (1996-2024) for flash flood deaths and injuries in Texas.
+- "flash_floods.csv" is the most granular flash flood file which is at an event level containing a reported summary of each flash flood in the database (1996-2024).
+- "kerrville_flood_heights.csv" contains the max gauge height (ft) for each minor/moderate/major flooding, as defined by NOAA, at the Guadalupe River at Kerrville (USGS site 08166200).
+- "stream_data_july_4th.csv" contains gauge height (ft) and discharge (cfs) for the 6 sensors along the Guadalupe (around Hunt, Kerrville, Comfort). Note: most sensors have height data at 15-min intervals (and one sensor at 5-min intervals). Discharge data usually matches that frequency (except one that is hourly) but there are various gaps around peak flooding which often happen during extreme events.
+
