@@ -22,5 +22,5 @@ The analysis script (methods.Rmd) exports a few files:
 - "flash_floods_tx_year.csv" contains an annual timeseries (1996-2024) for flash flood deaths and injuries in Texas.
 - "flash_floods.csv" is the most granular flash flood file which is at an event level containing a reported summary of each flash flood in the database (1996-2024).
 - "kerrville_flood_heights.csv" contains the max gauge height (ft) for each minor/moderate/major flooding, as defined by NOAA, at the Guadalupe River at Kerrville (USGS site 08166200).
-- "stream_data_july_4th.csv" contains gauge height (ft) and discharge (cfs) for the 6 sensors along the Guadalupe (around Hunt, Kerrville, Comfort). Note: most sensors have height data at 15-min intervals (and one sensor at 5-min intervals). Discharge data usually matches that frequency (except one that is hourly) but there are some gaps for both variables around peak flooding which often happen during extreme events.
+- "stream_data_july_4th.csv" contains gauge height (ft) and discharge (cfs) for the 5 sensors along the Guadalupe (around Hunt, Kerrville, Comfort). Note: most sensors have height data at 15-min intervals (and one sensor at 5-min intervals). Discharge data usually matches that frequency (except one that is hourly) but there are some gaps for both variables around peak flooding which often happen during extreme events.
 

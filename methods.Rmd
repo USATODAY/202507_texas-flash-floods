@@ -345,6 +345,16 @@ stream_data_july_4th <- stream_data_july_4th %>%
   mutate(date_time = as.POSIXct(date_time, tz = "America/Chicago")) %>%
   left_join(gauges)
 
+# check number of observations at each
+# Hunt is at a 5-min frequency so it has more
+# but there's very few at Center Point, we'll remove it before exporting
+stream_data_july_4th %>%
+  group_by(station_nm) %>%
+  summarise(observations = n())
+
+stream_data_july_4th <- stream_data_july_4th %>%
+  filter(station_nm != "Guadalupe Rv nr Center Point, TX")
+
 # there are gaps in data during peak flood times but it's all the data available
 # write_csv(stream_data_july_4th, "outputs/stream_data_july_4th.csv")
 
