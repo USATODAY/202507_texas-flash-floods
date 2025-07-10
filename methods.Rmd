@@ -137,7 +137,7 @@ flash_floods_tx_year %>%
 
 ```
 
-Here is the tables for state data (combined years).
+Here is the table for state data (combined years).
 
 ```{r c5, echo = FALSE}
 flash_floods_state_1996_2024 %>%
@@ -168,6 +168,7 @@ Now, let's move to stream gage data from USGS. We'll be accessing the data throu
 We'll start with site [08166200](https://waterdata.usgs.gov/monitoring-location/USGS-08166200/#dataTypeId=continuous-00065-0&period=P7D) for Guadalupe River at Kerrville, TX. Gage height continuous data (15-min intervals) is available since mid 2007. Gage height daily data which includes mean/max/min aggregations is available since mid 1997.
 
 Query all daily gage height (parameter 00065) and then label, based on max height, the category for each day: 
+
 - action, "The level which, when reached by a rising stream, represents the level where the NWS or a customer/partner needs to take some type of mitigation action in preparation for possible significant hydrologic activity."
 - minor flooding, "Minimal or no property damage, but possibly some public threat."
 - moderate flooding, "Some inundation of structures and roads near stream."
@@ -319,7 +320,7 @@ tx_gauges <- whatNWISdata(stateCd = "TX", parameterCd = "00065", service = "uv")
 
 # filter for active gauges along the Guadalupe River
 guadalupe_gauges <- tx_gauges %>%
-  filter(site_tp_cd == "ST", end_date >= (Sys.Date()-1)) %>%
+  filter(site_tp_cd == "ST", end_date >= "2025-07-08") %>%
   mutate(guadalupe = str_detect(station_nm, regex("guadalupe", ignore_case = T))) %>%
   filter(guadalupe == T)
 
